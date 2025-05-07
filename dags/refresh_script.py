@@ -60,7 +60,7 @@ def leagues_data_ingestion():
         leagues_standing_ingestion(league_name, HEADERS)
         message = f"✅ Data refreshed :{league_name}"
         print(message)
-        print('test message')
+        print('test messages')
 
 if __name__ == "__main__":
     leagues_data_ingestion()
