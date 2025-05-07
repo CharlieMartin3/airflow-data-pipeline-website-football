@@ -1,0 +1,34 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main  # remplace par "master" si ta branche s'appelle ainsi
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        # Cette action télécharge le code du repo (utile si tu veux l'utiliser plus tard dans le workflow)
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+        # On crée un fichier contenant la clé privée SSH (récupérée du secret GitHub)
+        # ssh-keyscan permet d'ajouter l'empreinte du serveur EC2 pour éviter l'erreur "host authenticity not verified"
+
+      - name: Deploy on EC2
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd airflow-data-pipeline
+            git pull
+            docker-compose restart
+          EOF
+        # Cette commande SSH se connecte à ton EC2, va dans le dossier Airflow, tire les dernières modifications et relance les conteneurs Docker
+
